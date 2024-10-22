@@ -1,0 +1,22 @@
+services:
+  dev:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      target: dev
+    ports:
+      - "8081:80"
+  base:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      target: base
+    ports:
+      - "8082:80"
+  prod:
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      target: prod
+    ports:
+      - "8083:80"
