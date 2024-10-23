@@ -1,0 +1,45 @@
+name: Deploy to AWS Fargate
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to AWS Fargate
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the latest code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Configure AWS credentials from Secrets
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1 # Set your AWS region
+
+    # Log in to the Amazon ECR registry
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 910648468197.dkr.ecr.us-east-1.amazonaws.com
+
+    # Build the Docker image for the "prod" target, specifying the correct Dockerfile path
+    - name: Build and tag Docker image (prod target)
+      run: |
+        docker build --target prod -t hello-fargate:prod -f docker/Dockerfile .
+        docker tag hello-fargate:prod 910648468197.dkr.ecr.us-east-1.amazonaws.com/hello-fargate:prod
+
+    # Push the Docker image to ECR
+    - name: Push Docker image to Amazon ECR
+      run: |
+        docker push 910648468197.dkr.ecr.us-east-1.amazonaws.com/hello-fargate:prod
+
+    # Update the ECS service with the new image
+    - name: Deploy to Amazon ECS
+      run: |
+        aws ecs update-service --cluster hello-fargatee-cluster --service hello-fargate-service --force-new-deployment
