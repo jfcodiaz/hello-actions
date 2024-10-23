@@ -1,0 +1,39 @@
+name: Build and push Docker image to DockerHub
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jgit obs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v4
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+    - name: Build and push to DockerHub with target dist
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: dist 
+        push: true
+        tags: |
+          jfcodiaz/git-action-tests:latest
+          jfcodiaz/git-action-tests:${{ github.ref_name }}
+
+    - name: Build and push to DockerHub with target dev
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        dockerfile: ./code/Dockerfile
+        target: dev
+        push: true
+        tags: |
+          jfcodiaz/git-action-dev:${{ github.ref_name }}

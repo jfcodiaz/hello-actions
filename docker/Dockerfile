@@ -2,6 +2,10 @@ FROM nginx:alpine as base
 
 RUN echo "Base!" > /usr/share/nginx/html/index.html
 
+FROM base as dist
+
+RUN echo "Distribution!" > /usr/share/nginx/html/index.html
+
 FROM base as dev
 
 RUN echo "Dev!" > /usr/share/nginx/html/index.html
